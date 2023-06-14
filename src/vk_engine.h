@@ -5,6 +5,38 @@
 
 #include <vk_types.h>
 #include <vector>
+#include <deque>
+#include <functional>
+
+#include <vk_mesh.h>
+#include <glm/glm.hpp>
+
+//Exact same struct in vertex shader
+struct MeshPushConstants
+{
+	glm::vec4 data;
+	glm::mat4 render_matrix;
+};
+
+struct DeletionQueue
+{
+	std::deque<std::function<void()>> delectors;
+
+	void push_function(std::function<void()>&& function)
+	{
+		delectors.push_back(function);
+	}
+
+	void flush()
+	{
+		for (auto it = delectors.rbegin(); it != delectors.rend(); it++)
+		{
+			(*it)(); //Call the function
+		}
+
+		delectors.clear();
+	}
+};
 
 class VulkanEngine 
 {
@@ -42,6 +74,27 @@ public:
 
 	VkPipelineLayout _trianglePipelineLayout;
 	VkPipeline _trianglePipeline;
+	VkPipeline _redTrianglePipeline;
+
+	int _selectedShader{ 0 };
+	int _totalShader{ 2 };
+
+	DeletionQueue _mainDeletionQueue;
+
+	VmaAllocator _allocator;
+
+	VkPipeline _meshPipeline;
+	Mesh _triangleMesh;
+
+	VkPipelineLayout _meshPipelineLayout;
+
+	Mesh _monkeyMesh;
+
+	VkImageView _depthImageView;
+	AllocatedImage _depthImage;
+
+	//the format for the depth image
+	VkFormat _depthFormat;
 
 public:
 	void init();
@@ -59,6 +112,9 @@ private:
 	void init_pipelines();
 
 	bool load_shader_module(const char* filePath, VkShaderModule* outShaderModule);
+
+	void load_meshes();
+	void upload_mesh(Mesh& mesh);
 };
 
 class PipelineBuilder

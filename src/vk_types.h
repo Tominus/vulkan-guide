@@ -5,4 +5,20 @@
 
 #include <vulkan/vulkan.h>
 
-//we will add our main reusable types here
+#include <vk_mem_alloc.h>
+
+typedef struct
+{
+	//Handle to a GPU buffer
+	VkBuffer _buffer;
+	//Keep in memory the size and who allocated
+	VmaAllocation _allocation;
+
+}AllocatedBuffer;
+
+typedef struct
+{
+	VkImage _image;
+	VmaAllocation _allocation;
+
+} AllocatedImage;
